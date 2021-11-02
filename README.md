@@ -5,7 +5,7 @@ Concrètement, on veut prédire de quelle nationalité s’agit un texte nouvell
 Pour ce dernier, j'ai réalisé un pré-processing des données, puis du feature engineering. Et par la suite, j'ai construit un modèle et le entraîné avec nos jeux de données d'entraînement, puis sorti les résultats de la prédiction dans le fichier.
 
 ## Install and usage
-1.Configuration de l'environnement
+1. Configuration de l'environnement
 Option 1 : Activer l'environnement virtuel configuré (venv)
    ```sh
     source bin/activate
@@ -20,13 +20,14 @@ Option 2 : Installer les bibliothèques dépendantes à partir de requirements.t
 ```
 Le temps d'exécution est d'environ 3-4 minutes.
 
-** Un exemple **
+**Un exemple**
 
 <div align="center">
 
 <img align="center" hight="600" width="600" src="https://github.com/JuexiaoZhang/ClassificationTexteMulticlasse/blob/main/data/capture.png">
 
 </div>
+
 ## In Details
 
 Folder structure
