@@ -8,7 +8,6 @@ from nltk.corpus import stopwords
 from textblob import TextBlob
 from sklearn.feature_extraction.text import CountVectorizer
 
-#
 import ssl
 try:
     _create_unverified_https_context = ssl._create_unverified_context
@@ -21,11 +20,24 @@ nltk.download('stopwords')
 
 
 class DataGenerator:
+    """
+        La définition du DataGenerator: data preprocessing et feature engineering
+
+        Args:
+            trainfilename (String): L'adresse de Train set
+            testfilename (String): L'adresse de Test set
+
+        Attributes:
+            word_count_vector(Dataframe): Caractéristique construites par des vecteurs de mots
+            handmade_features(Dataframe): Caractéristiques extraites manuellement
+
+       """
     def __init__(self, trainfilename,testfilename):
         self.trainfilename = trainfilename
         self.testfilename = testfilename
         self.get_df_from_path()
-        #Feature Engineering
+
+        # Feature Engineering
         self.dict_word_about_lang = {
             'word_country_about_GER': ['germany', 'austria', 'liechtenstein', 'switzerland', 'luxembourg', 'belgium'],
             'word_country_about_TUR': ['turkey', 'cyprus'],
@@ -100,6 +112,10 @@ class DataGenerator:
 
 
     def get_df_from_path(self):
+        """
+        Importer des données
+
+        """
         with open('./'+self.trainfilename, 'r') as f:
             x = f.readlines()
         self.df_train = pd.DataFrame(x)
@@ -117,15 +133,25 @@ class DataGenerator:
         self.df['text_preproc'] = self.df['text'].apply(lambda x: self.pre_process(x))
 
     def build_word_count_vector(self):
-        # get the text column
-        docs = self.df['text_preproc'].tolist()
-        # create a vocabulary of words, ignore words that appear in 85% of documents, eliminate stop words
-        # cv=CountVectorizer(max_df=0.85,stop_words='english')
-        # Avec les parametres max_df=0.85 et stop_words='english', le score devient pire.
+        """
+        Construire un vecteur de mot
+
+        """
+        docs = self.df['text_preproc'].tolist() # get the text column
+        '''
+        Another test ：create a vocabulary of words, ignore words that appear in 85% of documents, eliminate stop words
+        cv=CountVectorizer(max_df=0.85,stop_words='english')
+        Cepandant, avec les parametres max_df=0.85 et stop_words='english', le score devient pire.
+        '''
         cv = CountVectorizer()
         self.word_count_vector = cv.fit_transform(docs)
 
     def build_handmade_feature(self):
+        """
+        Extraire manuellement des caractéristiques
+
+        """
+
         # Reindex le dataframe self.df
         self.df = self.df.reset_index(drop=True)
 
@@ -136,25 +162,20 @@ class DataGenerator:
         self.df['sentenceList'] = self.df['text'].apply(sent_tokenize)
         self.df['punctuations'] = self.df['text'].apply(lambda x: "".join(_ for _ in x if _ in string.punctuation))
 
-        ## Déclaration des variables
-        # Etiquette de sentiment
-        sentiments = ['polarity_negative', 'polarity_neutre', 'polarity_positive', 'subjectivity_objective',
-                      'subjectivity_subjective']
-
-        print('--- Number of letters')
         # Combien de char par text
+        print('--- Number of letters')
         self.df['char_count'] = self.df['text'].apply(len)
 
-        print('--- Number of words')
         # Combien de mot par text
+        print('--- Number of words')
         self.df['word_count'] = [len(item) for item in self.df['wordList_lower']]
 
-        print('--- Average word length')
         # La longueur moyenne des mots dans le texte
+        print('--- Average word length')
         self.df['word_density'] = self.df['char_count'] / self.df['word_count']
 
-        print('--- Number of punctuations')
         # Nombre de punctuation dans le texte
+        print('--- Number of punctuations')
         self.df['punctuation_count'] = [len(item) for item in self.df['punctuations']]
         self.df['punctuation_count_apostrophe'] = self.df['punctuations'].apply(lambda x: self.count_punctuation(x, '\''))
         self.df['punctuation_count_bracket_right'] = self.df['punctuations'].apply(
@@ -164,54 +185,56 @@ class DataGenerator:
         self.df['punctuation_count_question'] = self.df['punctuations'].apply(lambda x: self.count_punctuation(x, '?'))
         self.df['punctuation_count_dash'] = self.df['punctuations'].apply(lambda x: self.count_punctuation(x, '-'))
 
-        print('--- Sentiment analysis')
         # Analyse de sentiment
+        print('--- Sentiment analysis')
+        sentiments = ['polarity_negative', 'polarity_neutre', 'polarity_positive', 'subjectivity_objective',
+                      'subjectivity_subjective'] # Etiquette de sentiment
         df_sentiment = self.build_df_sentiments(self.df, sentiments)
         self.df = pd.concat([self.df, pd.DataFrame(df_sentiment, columns=sentiments)], axis=1)
 
-        print('--- Number of sentences')
         # Combien de phrase par text
+        print('--- Number of sentences')
         self.df['sentence_count'] = [len(item) for item in self.df['sentenceList']]
 
-        print('--- Average sentence length')
         # Longeur moyenne de phrase par text (en char/mot)
+        print('--- Average sentence length')
         self.df['sentence_density_char'] = self.df['char_count'] / self.df['sentence_count']
         self.df['sentence_density_word'] = self.df['word_count'] / self.df['sentence_count']
 
-        print('--- Number of words started with uppercase')
         # Nombre de mot commencé par majuscule
+        print('--- Number of words started with uppercase')
         self.df['upper_case_word_count'] = self.df['wordList_upper'].apply(
             lambda x: len([wrd for wrd in x if not wrd.islower()]))
 
-        print('--- Number of articles (a, an, the)')
         # Combien d‘article par text （a, an, the)
+        print('--- Number of articles (a, an, the)')
         self.df['quantity_a'] = [self.quantity_of_word('a', item) for item in self.df['wordList_lower']]
         self.df['quantity_an'] = [self.quantity_of_word('an', item) for item in self.df['wordList_lower']]
         self.df['quantity_the'] = [self.quantity_of_word('the', item) for item in self.df['wordList_lower']]
 
+        # Analyse des mots concernant des langues maternelles
+        print('--- Words relating to mother tongues')
+        list_word_about_lang = list(self.dict_word_about_lang.keys())
+        df_word_about_langue = self.build_df_word_about_langue(self.df, list_word_about_lang)
+        self.df = pd.concat([self.df, pd.DataFrame(df_word_about_langue, columns=list_word_about_lang)], axis=1)
+
         '''
-        print('--- Pos-tagger')
+        # Certaines caractéristiques qui prennent beaucoup de temps à extraire ont été commentées :
         # pos-tagger
+        print('--- Pos-tagger')
         self.df['noun_count'] = self.df['wordList_lower'].apply(lambda x: self.check_pos_tag(x, 'noun'))
         self.df['verb_count'] = self.df['wordList_lower'].apply(lambda x: self.check_pos_tag(x, 'verb'))
         self.df['adj_count'] = self.df['wordList_lower'].apply(lambda x: self.check_pos_tag(x, 'adj'))
         self.df['adv_count'] = self.df['wordList_lower'].apply(lambda x: self.check_pos_tag(x, 'adv'))
         self.df['pron_count'] = self.df['wordList_lower'].apply(lambda x: self.check_pos_tag(x, 'pron'))
 
-        print('--- Stopwords')
         # Combien de Stopword
+        print('--- Stopwords')
         self.df['stopwords_count'] = self.df['wordList_lower'].apply(
             lambda x: len([wrd for wrd in x if wrd in stopwords.words('english')]))
         # Fréquence des stopwords
         self.df['stopwords_frequency'] = self.df['stopwords_count'] / self.df['word_count']
-        '''
-        print('--- Words relating to mother tongues')
-        # Analyse des mots concernant des langues maternelles
-        list_word_about_lang = list(self.dict_word_about_lang.keys())
-        df_word_about_langue = self.build_df_word_about_langue(self.df, list_word_about_lang)
-        self.df = pd.concat([self.df, pd.DataFrame(df_word_about_langue, columns=list_word_about_lang)], axis=1)
-
-        '''
+        
         # Faute grammaire
         self.df['mistake_rules'] = [self.collect_ruleid(item) for item in self.df['text'].values]
         self.df['mistake_count'] = self.df['mistake_rules'].apply(lambda x: len(x))
@@ -223,27 +246,16 @@ class DataGenerator:
         self.handmade_features = self.df.iloc[:, list(self.df.columns).index('char_count'):]
 
     def pre_process(self,text):
-        # lowercase
-        text = text.lower()
-        # remove tags
-        text = re.sub("</?.*?>", " <> ", text)
-        # remove special characters and digits
-        text = re.sub("(\\d|\\W)+", " ", text)
+        """
+        Supprimer les caractères spéciaux
+
+        Args:
+            text (string): Chaîne à traiter
+        """
+        text = text.lower() # lowercase
+        text = re.sub("</?.*?>", " <> ", text) # remove tags
+        text = re.sub("(\\d|\\W)+", " ", text) # remove special characters and digits
         return text
-
-    def preprocess_lower(self,sent):
-        # Uppercase to lowercase
-        sent = sent.lower()
-        # Transformez la ponctuation en espaces
-        sent = sent.translate(str.maketrans(string.punctuation, ' ' * len(string.punctuation)))
-        # Transformer une phrase en une liste de mot
-        sent = nltk.word_tokenize(sent)
-        return sent
-
-    def preprocess_upper(self,sent):
-        sent = sent.translate(str.maketrans(string.punctuation, ' ' * len(string.punctuation)))
-        sent = nltk.word_tokenize(sent)
-        return sent
 
     #def preprocess_sentence(sent):
     #    sent_tokenize_list = sent_tokenize(sent)
@@ -328,6 +340,8 @@ class DataGenerator:
             df_sentiment.append(l)
         return df_sentiment
 
+
+
     # Creation du dataframe contenant le nombre des mots concernant une langue maternelles dans un texte
     def build_df_word_about_langue(self,df,list_langue):
         df_word_about_langue = []
@@ -354,6 +368,21 @@ class DataGenerator:
                 l[allrules.index(rule)] += 1
             df_rules.append(l)
         return df_rules, allrules
+
+    def preprocess_lower(self,sent):
+        # Uppercase to lowercase
+        sent = sent.lower()
+        # Transformez la ponctuation en espaces
+        sent = sent.translate(str.maketrans(string.punctuation, ' ' * len(string.punctuation)))
+        # Transformer une phrase en une liste de mot
+        sent = nltk.word_tokenize(sent)
+        return sent
+
+    def preprocess_upper(self,sent):
+        sent = sent.translate(str.maketrans(string.punctuation, ' ' * len(string.punctuation)))
+        sent = nltk.word_tokenize(sent)
+        return sent
+
 
 
 

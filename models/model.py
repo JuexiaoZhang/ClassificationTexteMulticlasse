@@ -4,6 +4,14 @@ import pandas as pd
 
 
 class Model:
+    """
+    La définition du Machine Learning Model
+
+    Args:
+        data (DataGenerator): Données prétraitées par le data generator
+
+    """
+
     def __init__(self,data):
         self.allfeatures = data.allfeatures
         self.df= data.df
@@ -12,7 +20,10 @@ class Model:
         self.trainning()
 
     def trainning(self):
+        """
+        Construire le modèle et entraîner les données
 
+        """
         train_X = self.allfeatures[0:self.train_size]
         train_Y = self.df.iloc[0:self.train_size]['lable'].tolist()
 
@@ -27,6 +38,10 @@ class Model:
             pickle.dump(clf, file)
 
     def predict(self):
+        """
+        Prédisez la nationalité sur Test Set et écrivez le résultat dans le fichier rendu.txt
+
+        """
         # Load from file
         pkl_filename = "./data/working/models/train_model.pkl"
         with open(pkl_filename, 'rb') as file:
