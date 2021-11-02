@@ -110,7 +110,6 @@ class DataGenerator:
         self.allfeatures = np.concatenate((self.word_count_vector.toarray(), self.handmade_features), axis=1)
 
 
-
     def get_df_from_path(self):
         """
         Importer des données
@@ -339,8 +338,6 @@ class DataGenerator:
                 l[sentiments.index('subjectivity_subjective')] = 1
             df_sentiment.append(l)
         return df_sentiment
-
-
 
     # Creation du dataframe contenant le nombre des mots concernant une langue maternelles dans un texte
     def build_df_word_about_langue(self,df,list_langue):

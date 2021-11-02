@@ -42,12 +42,11 @@ class Model:
         Prédisez la nationalité sur Test Set et écrivez le résultat dans le fichier rendu.txt
 
         """
-        # Load from file
+        # Load model from file
         pkl_filename = "./data/working/models/train_model.pkl"
         with open(pkl_filename, 'rb') as file:
             model = pickle.load(file)
         test_X = self.allfeatures[self.train_size:self.train_size+self.test_size]
-        #test_Y = self.df.iloc[self.train_size:self.train_size+self.test_size]['lable'].tolist()
 
         list_result = model.predict(test_X)
         df_result = self.df.iloc[self.train_size:self.train_size+self.test_size].copy()
