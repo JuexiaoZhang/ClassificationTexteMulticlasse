@@ -24,7 +24,7 @@ Le temps d'exécution est d'environ 3-4 minutes.
 
 <div align="center">
 
-<img align="center" hight="600" width="600" src=" ">
+<img align="center" hight="600" width="600" src="https://github.com/JuexiaoZhang/ClassificationTexteMulticlasse/blob/main/data/capture.png">
 
 </div>
 ## In Details
