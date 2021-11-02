@@ -21,17 +21,17 @@ nltk.download('stopwords')
 
 class DataGenerator:
     """
-        La définition du DataGenerator: data preprocessing et feature engineering
+    La définition du DataGenerator: data preprocessing et feature engineering
 
-        Args:
-            trainfilename (String): L'adresse de Train set
-            testfilename (String): L'adresse de Test set
+    Args:
+        trainfilename (String): L'adresse de Train set
+        testfilename (String): L'adresse de Test set
 
-        Attributes:
-            word_count_vector(Dataframe): Caractéristique construites par des vecteurs de mots
-            handmade_features(Dataframe): Caractéristiques extraites manuellement
+    Attributes:
+        word_count_vector(Dataframe): Caractéristique construites par des vecteurs de mots
+        handmade_features(Dataframe): Caractéristiques extraites manuellement
 
-       """
+    """
     def __init__(self, trainfilename,testfilename):
         self.trainfilename = trainfilename
         self.testfilename = testfilename
