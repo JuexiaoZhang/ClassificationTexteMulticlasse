@@ -8,9 +8,9 @@ Pour ce dernier, j'ai réalisé un pré-processing des données, puis du feature
 1. Configuration de l'environnement.
 
 Option 1 : Activer l'environnement virtuel configuré (venv)
-   ```sh
+```sh
     source bin/activate
-   ```
+```
 Option 2 : Installer les bibliothèques dépendantes à partir de requirements.txt sur votre environnement exsitant
 ```sh
     pip install -r requirements.txt
